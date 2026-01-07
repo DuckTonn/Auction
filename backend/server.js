@@ -3,13 +3,39 @@ dotenv.config();
 
 import express from 'express';
 import cors from 'cors';
-import connectDB from '../db/connect.js'
+import mongoose from 'mongoose'; // Đã thêm import mongoose trực tiếp vào đây
 import passport from 'passport';
 import cookieParser from 'cookie-parser';
 import './config/passport.config.js';
 import simpleLogger from './middleware/logger.middleware.js';
 
-await connectDB(); 
+// === CẤU HÌNH KẾT NỐI MONGODB (Đã gộp vào đây) ===
+const connectDB = async () => {
+    const DB_URI = process.env.MONGODB_URI;
+
+    if (!DB_URI) {
+        console.error("[MONGOOSE] Lỗi: Không tìm thấy biến môi trường MONGODB_URI trong file .env");
+        process.exit(1);
+    }
+
+    try {
+        await mongoose.connect(DB_URI, {
+            serverSelectionTimeoutMS: 30000,
+            socketTimeoutMS: 45000,
+            family: 4
+        });
+
+        console.log(`[MONGOOSE] Kết nối MongoDB Atlas thành công!`);
+        console.log(`[MONGOOSE] Host: ${mongoose.connection.host}`);
+
+    } catch (err) {
+        console.error(`[MONGOOSE] Kết nối MongoDB thất bại: ${err.message}`);
+        process.exit(1);
+    }
+};
+
+// === KHỞI TẠO KẾT NỐI ===
+await connectDB();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -20,12 +46,13 @@ app.use(cookieParser());
 app.use(passport.initialize());
 app.use(simpleLogger);
 
+// Cấu hình CORS (Lưu ý: Khi deploy, hãy đổi origin thành domain thật của frontend trên Render/Vercel)
 app.use(cors({
-    origin: 'http://localhost:5173',
+    origin: process.env.CLIENT_URL || 'http://localhost:5173', // Nên dùng biến môi trường cho linh hoạt
     credentials: true,
 }));
 
-// Import routes
+// === IMPORT ROUTES & CONTROLLERS ===
 
 // === AUTH ===
 const { authController } = await import('./controllers/auth.controller.js');
@@ -69,7 +96,7 @@ const { AuctionResultRoutes } = await import('./routes/auction.result.route.js')
 
 // === BACKGROUND SERVICES (CRON JOB) ===
 const { cronService } = await import('./services/cron.service.js');
-cronService.start(); 
+cronService.start();
 console.log('Cron Service đã được khởi động...');
 
 // === CONFIG ROUTES ===
@@ -97,7 +124,8 @@ app.use('/api/ratings', RatingRoutes(ratingController));
 app.use('/api/qnas', QnARoutes(qnaController));
 app.use('/api/chat', ChatMessageRoutes(chatMessageController));
 app.use('/api/auction-results', AuctionResultRoutes(auctionResultController));
-// START
+
+// START SERVER
 app.listen(PORT, () => {
     console.log(`Server đang chạy trên cổng http://localhost:${PORT}/api`);
 });
