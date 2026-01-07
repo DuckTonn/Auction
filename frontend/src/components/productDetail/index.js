@@ -1,0 +1,11 @@
+export { default as ProductImages } from './ProductImages'
+export { default as ProductInfo } from './ProductInfo'
+export { default as ProductDescription } from './ProductDescription'
+export { default as ProductQA } from './ProductQA'
+export { default as BiddingSection } from './BiddingSection'
+export { default as BiddingForm } from './BiddingForm'
+export { default as BidRow } from './BidRow'
+export { default as RelatedProducts } from './RelatedProducts'
+export { default as AuctionCountdown } from './AuctionCountdown'
+
+export * from './productDetail.utils.jsx'

@@ -1,0 +1,15 @@
+#root {
+  width: 100%;
+  /*max-width: 1280px;*/
+  margin: 0 auto;
+  padding: 0 ;
+  text-align: left;
+  --color-primary: #0D1B2A;
+  --color-on-primary: #F5F7FA;
+  --color-card-bg: #E7F5FF;
+  --color-card-border: #BEE1F7;
+  --color-secondary: #778DA9;
+  --color-accent: #E07A5F;
+  --color-text: #0D2433;
+}
+

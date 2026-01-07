@@ -1,0 +1,4 @@
+{
+  "extend_threshold_minutes": 5,
+  "extend_duration_minutes": 10
+}
