@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const executeTransaction = async (work) => {
     const session = await mongoose.startSession();
@@ -17,4 +17,4 @@ const executeTransaction = async (work) => {
     }
 };
 
-module.exports = { executeTransaction };
+export { executeTransaction };
