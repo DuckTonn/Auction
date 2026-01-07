@@ -6,7 +6,7 @@ import { userRepository } from '../repositories/user.repository.js';
 import { auctionResultRepository } from '../repositories/auction.result.repository.js';
 import { configRepository } from '../repositories/config.repository.js';
 
-import { executeTransaction } from '../../db/db.helper.js';
+import { executeTransaction } from '../db.helper.js';
 import { dispatchEmail } from './email.service.queue.js';
 import { productService } from './product.service.js';
 

@@ -8,7 +8,7 @@ import { auctionResultRepository } from '../repositories/auction.result.reposito
 import { userRepository } from '../repositories/user.repository.js';
 import { dispatchEmail } from './email.service.queue.js';
 
-import { executeTransaction } from '../../db/db.helper.js';
+import { executeTransaction } from '../db.helper.js';
 
 const PRODUCT_URL_PREFIX = process.env.VITE_URL + 'product/' || 'http://localhost:3000/product/';
 const ORDER_URL_PREFIX = process.env.VITE_URL + 'orders/' || 'http://localhost:3000/orders/';

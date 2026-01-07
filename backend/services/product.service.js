@@ -5,7 +5,7 @@ import { categoryRepository } from '../repositories/category.repository.js';
 import { userRepository } from '../repositories/user.repository.js';
 import { auctionResultRepository } from '../repositories/auction.result.repository.js';
 import { bidRepository } from '../repositories/bid.repository.js';
-import { executeTransaction } from '../../db/db.helper.js';
+import { executeTransaction } from '../db.helper.js';
 import { recalculateAuctionState } from '../utils/auction.util.js';
 import { watchListRepository } from '../repositories/watch.list.repository.js';
 import { dispatchEmail } from './email.service.queue.js';
