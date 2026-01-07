@@ -29,24 +29,10 @@ const allowedOrigins = [
 
 // 2. Cấu hình CORS
 app.use(cors({
-  origin: function (origin, callback) {
-    // Cho phép request không có origin (như Postman hoặc Server-to-Server)
-    if (!origin) return callback(null, true);
-    
-    if (allowedOrigins.indexOf(origin) === -1) {
-      // Nếu origin không nằm trong danh sách cho phép -> Chặn
-      var msg = 'Lỗi CORS: Domain ' + origin + ' không được phép truy cập tài nguyên này.';
-      return callback(new Error(msg), false);
-    }
-    
-    // Nếu OK -> Cho qua
-    return callback(null, true);
-  },
-  credentials: true, // Cho phép gửi cookie/session
-  methods: "GET,HEAD,PUT,PATCH,POST,DELETE", // Các method được phép
-  preflightContinue: false,
-  optionsSuccessStatus: 204
+    origin: 'https://auction-git-main-ducktonns-projects.vercel.app',
+    credentials: true,
 }));
+
 
 // Import routes
 
