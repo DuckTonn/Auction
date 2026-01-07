@@ -24,7 +24,7 @@ app.use(simpleLogger);
 const allowedOrigins = [
   'http://localhost:5173',                // Cho phép chạy dưới Local
   'http://localhost:5174',                // Phòng hờ nếu Local chạy port khác
-  'https://du-an-cua-ban.vercel.app'      // <--- QUAN TRỌNG: Thay dòng này bằng Link Vercel thực tế của bạn
+  'https://auction-git-main-ducktonns-projects.vercel.app'      // <--- QUAN TRỌNG: Thay dòng này bằng Link Vercel thực tế của bạn
 ];
 
 // 2. Cấu hình CORS
