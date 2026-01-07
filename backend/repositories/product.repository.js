@@ -1,4 +1,4 @@
-import { Product, Category } from '../../db/schema.js';
+import { Product, Category } from '../schema.js';
 import { categoryRepository } from './category.repository.js';
 
 class ProductRepository { 

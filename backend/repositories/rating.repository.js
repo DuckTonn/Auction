@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { Rating } from "../../db/schema.js";
+import { Rating } from '../schema.js';
 
 class RatingRepository {
     async create(ratingData, session = null) {

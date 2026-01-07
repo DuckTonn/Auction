@@ -1,5 +1,5 @@
-const mongoose = require('mongoose');
-const sanitizeHtml = require('sanitize-html');
+import mongoose from 'mongoose';
+import sanitizeHtml from 'sanitize-html';
 const { Schema } = mongoose;
 
 // Helper validate số lượng ảnh
@@ -298,8 +298,8 @@ const RefreshToken = mongoose.model('Refresh_Token', refreshTokenSchema);
 const ChatMessage = mongoose.model('Chat_Message', chatMessageSchema);
 const OtpModel = mongoose.model('Otp', otpSchema);
 
-// --- EXPORT (CommonJS) ---
-module.exports = {
+// --- EXPORT (ES6 Modules) ---
+export {
   User,
   UpgradeRequest,
   WatchList,
