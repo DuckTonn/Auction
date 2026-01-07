@@ -22,7 +22,7 @@ app.use(simpleLogger);
 
 // 2. Cấu hình CORS
 app.use(cors({
-    origin: 'https://auction-git-main-ducktonns-projects.vercel.app',
+    origin: 'https://auction-ochre-tau.vercel.app',
     credentials: true,
 }));
 
