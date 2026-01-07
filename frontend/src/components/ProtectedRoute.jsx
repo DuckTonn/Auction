@@ -1,5 +1,7 @@
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { useEffect } from 'react';
+import ToastNotification from './common/ToastNotification';
 
 export default function ProtectedRoute({ children, allowedRoles }) {
   const { user, loading } = useAuth();
@@ -15,7 +17,9 @@ export default function ProtectedRoute({ children, allowedRoles }) {
 
   // đăng nhập nhưng sai role -> đẩy về home
   if (allowedRoles && !allowedRoles.includes(user.role)) {
-    alert("Bạn không có quyền truy cập trang này.");
+    useEffect(() => {
+      ToastNotification('Bạn không có quyền truy cập trang này', 'error');
+    }, []);
     return <Navigate to ="/" replace />;
   }
 

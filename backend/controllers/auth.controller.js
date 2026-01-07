@@ -159,7 +159,7 @@ class AuthController {
             setRefreshTokenCookie(res, refreshToken);
             res.status(200).json({ token: accessToken });
         } catch (e) {
-            console.error("GOOGLE LOGIN ERROR:", e.response?.data || e.message);
+            console.error("[GOOGLE LOGIN ERROR]:", e.response?.data || e.message);
             res.status(500).json({ message: e.message || 'Lỗi đăng nhập Google!' });
         }
     }
@@ -178,7 +178,7 @@ class AuthController {
             setRefreshTokenCookie(res, refreshToken);
             res.status(200).json({ token: accessToken });
         } catch (e) {
-            console.error("FACEBOOK LOGIN ERROR:", e.response?.data || e.message);
+            console.error("[FACEBOOK LOGIN ERROR]:", e.response?.data || e.message);
             res.status(500).json({ message: e.message || 'Lỗi đăng nhập Facebook!' });
         }
     }
@@ -197,7 +197,7 @@ class AuthController {
             setRefreshTokenCookie(res, refreshToken);
             res.status(200).json({ token: accessToken });
         } catch (e) {
-            console.error("GITHUB LOGIN ERROR:", e.response?.data || e.message);
+            console.error("[GITHUB LOGIN ERROR]:", e.response?.data || e.message);
             res.status(500).json({ message: e.message || 'Lỗi đăng nhập GitHub!' });
         }
     }

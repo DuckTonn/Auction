@@ -1,4 +1,4 @@
-import { OtpModel } from '../schema.js';
+import { OtpModel } from '../db/schema.js';
 
 class OtpRepository {
     async createOrUpdateOtp(email, hashedOtp) {

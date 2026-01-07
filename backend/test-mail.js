@@ -1,7 +1,7 @@
 import dotenv from 'dotenv';
 dotenv.config(); 
 
-import * as mailService from '../backend/services/email.service.js';
+import * as mailService from './services/email.service.js';
 
 
 const TARGET_EMAIL = '<testmail>@gmail.com'; // Thay bằng email của bạn để test

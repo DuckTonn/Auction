@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { authService } from '../services/authService'
 import { setAuthToken } from '../services/api'
+import ToastNotification from '../components/common/ToastNotification'
 
 export default function OAuthCallback() {
   const navigate = useNavigate()
@@ -48,7 +49,14 @@ export default function OAuthCallback() {
         } catch (error) {
           console.error("Login Failed:", error);
           const errorMessage = error.response?.data?.message || 'Đăng nhập thất bại. Vui lòng thử lại.';
-          navigate('/login', { state: { error: errorMessage } });
+          
+          // Hiển thị toast notification
+          ToastNotification(errorMessage, 'error', 5);
+          
+          // Chờ 1s để user thấy toast rồi mới redirect
+          setTimeout(() => {
+            navigate('/login', { replace: true });
+          }, 1000);
         }
       };
 

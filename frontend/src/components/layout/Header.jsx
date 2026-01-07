@@ -8,6 +8,7 @@ import { upgradeRequestService } from '../../services/upgradeRequestService';
 
 import ToastNotification from '../common/ToastNotification';
 import ConfirmDialog from '../common/ConfirmDialog';
+import Button from '../common/Button';
 
 export default function Header() {
   const [showCategories, setShowCategories] = useState(false);
@@ -239,15 +240,15 @@ export default function Header() {
           <>
             
             <Link to="/login">
-              <button className="bg-gray-800 text-white px-5 py-2 rounded-lg font-medium hover:bg-gray-600 hover:text-white transition duration-200 whitespace-nowrap border border-gray-600 cursor-pointer">
+              <Button variant="secondary" size="md" className="whitespace-nowrap">
                 Đăng nhập
-              </button>
+              </Button>
             </Link>
 
             <Link to="/signup">
-              <button className="bg-blue-600 text-white px-5 py-2 rounded-lg font-medium hover:bg-blue-700 transition duration-200 whitespace-nowrap shadow-md shadow-blue-900/20 cursor-pointer">
+              <Button variant="primary" size="md" className="whitespace-nowrap shadow-md shadow-blue-900/20">
                 Đăng ký
-              </button>
+              </Button>
             </Link>
           </>
         )}
@@ -390,14 +391,14 @@ export default function Header() {
             ) : (
               <div className="space-y-2">
                 <Link to="/login" onClick={() => setShowMobileMenu(false)}>
-                  <button className="w-full bg-gray-800 text-white px-4 py-2.5 rounded-lg font-medium hover:bg-gray-700 transition duration-200 border border-gray-600 cursor-pointer">
+                  <Button variant="secondary" size="md" fullWidth>
                     Đăng nhập
-                  </button>
+                  </Button>
                 </Link>
                 <Link to="/signup" onClick={() => setShowMobileMenu(false)}>
-                  <button className="w-full bg-blue-600 text-white px-4 py-2.5 rounded-lg font-medium hover:bg-blue-700 transition duration-200 shadow-md shadow-blue-900/20 cursor-pointer">
+                  <Button variant="primary" size="md" fullWidth className="shadow-md shadow-blue-900/20">
                     Đăng ký
-                  </button>
+                  </Button>
                 </Link>
               </div>
             )}

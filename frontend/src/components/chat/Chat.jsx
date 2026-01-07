@@ -3,6 +3,7 @@ import ChatMessage, { MessageType } from './ChatMessage';
 import * as chatService from '../../services/chatService';
 import { useAuth } from '../../context/AuthContext';
 import EmojiPicker from 'emoji-picker-react';
+import ToastNotification from '../common/ToastNotification';
 
 export const avatar = (name, background = 'random') => {
   if (!name || typeof name !== 'string') name = '?';
@@ -131,7 +132,7 @@ const Chat = ({ resultId, otherUser }) => {
       console.error('Failed to send message:', error);
       // Remove temp message on error
       setMessages(prev => prev.filter(msg => msg.id !== tempMessage.id));
-      alert('Không thể gửi tin nhắn. Vui lòng thử lại.');
+      ToastNotification('Không thể gửi tin nhắn. Vui lòng thử lại.', 'error');
     }
   };
 

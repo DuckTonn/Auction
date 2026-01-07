@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { authService } from '../services/authService';
+import Button from '../components/common/Button';
 
 export default function ForgotPassword() {
   const navigate = useNavigate();
@@ -9,13 +10,23 @@ export default function ForgotPassword() {
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
+  const [errors, setErrors] = useState({});
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [])
 
+  const validate = () => {
+    const newErrors = {};
+    if (!email.trim()) newErrors.email = 'Email là bắt buộc';
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) newErrors.email = 'Email không hợp lệ';
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!validate()) return;
     setLoading(true);
     setMessage('');
 
@@ -32,8 +43,9 @@ export default function ForgotPassword() {
     setLoading(false);
   };
 
-  const handleInputChange = (setter) => (e) => {
+  const handleInputChange = (setter, field) => (e) => {
     setter(e.target.value);
+    setErrors(prev => ({ ...prev, [field]: '' }));
     if (message) setMessage('');
   };
 
@@ -57,14 +69,13 @@ export default function ForgotPassword() {
             <label className="block text-sm font-medium text-slate-700 mb-1.5">Email liên kết</label>
             <div className="relative">
                 <input
-                type="email"
+                type="text"
                 placeholder="name@example.com"
                 value={email}
-                onChange={handleInputChange(setEmail)}
-                required
+                onChange={handleInputChange(setEmail, 'email')}
                 disabled={loading || emailSent}
                 className={`w-full px-4 py-3 rounded-lg border text-sm outline-none transition-all duration-200
-                    ${message && !message.includes('gửi')
+                    ${errors.email || (message && !message.includes('gửi'))
                     ? 'border-red-500 bg-red-50 text-red-900 focus:ring-2 focus:ring-red-200' 
                     : 'border-slate-300 bg-white text-slate-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-100'
                     } disabled:bg-slate-50 disabled:text-slate-500 disabled:cursor-not-allowed`}
@@ -76,6 +87,7 @@ export default function ForgotPassword() {
                     </svg>
                 </div>
             </div>
+            {errors.email && <p className="text-red-600 text-sm mt-1">{errors.email}</p>}
           </div>
 
           {/* Message Alert (Success/Error) */}
@@ -97,29 +109,31 @@ export default function ForgotPassword() {
 
           {/* Main Action Button */}
           {!emailSent ? (
-            <button 
-                type="submit" 
-                disabled={loading}
-                className="w-full py-3.5 rounded-lg bg-blue-600 text-white font-bold text-sm uppercase tracking-wide shadow-lg shadow-blue-500/30 hover:bg-blue-700 hover:shadow-blue-500/40 active:scale-[0.98] transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer"
+            <Button
+              type="submit"
+              variant="primary"
+              size="lg"
+              fullWidth
+              disabled={loading}
+              loading={loading}
+              className="uppercase tracking-wide shadow-lg shadow-blue-500/30 hover:shadow-blue-500/40"
             >
-                {loading ? (
-                <span className="flex items-center justify-center gap-2">
-                    <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                    Đang gửi...
-                </span>
-                ) : 'Gửi mã OTP'}
-            </button>
+              Gửi mã xác thực
+            </Button>
           ) : (
             /* Navigate Button - Only shows when Email Sent */
             <div className="space-y-4">
-                <button 
+                <Button
                     type="button"
+                    variant="success"
+                    size="lg"
+                    fullWidth
                     onClick={() => navigate(`/reset-password?email=${encodeURIComponent(email)}`)}
-                    className="w-full py-3.5 rounded-lg bg-green-600 text-white font-bold text-sm uppercase tracking-wide shadow-lg shadow-green-500/30 hover:bg-green-700 hover:shadow-green-500/40 active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer"
+                    className="uppercase tracking-wide shadow-lg shadow-green-500/30 hover:shadow-green-500/40"
                 >
                     Nhập OTP & Mật khẩu mới
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
-                </button>
+                </Button>
                 <p className="text-center text-xs text-slate-400">
                     Chưa nhận được mail? <button type="submit" disabled={loading} className="text-blue-600 hover:underline font-medium disabled:opacity-50 cursor-pointer">Gửi lại</button>
                 </p>

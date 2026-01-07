@@ -5,7 +5,7 @@ import { categoryRepository } from '../repositories/category.repository.js';
 import { userRepository } from '../repositories/user.repository.js';
 import { auctionResultRepository } from '../repositories/auction.result.repository.js';
 import { bidRepository } from '../repositories/bid.repository.js';
-import { executeTransaction } from '../db.helper.js';
+import { executeTransaction } from '../db/db.helper.js';
 import { recalculateAuctionState } from '../utils/auction.util.js';
 import { watchListRepository } from '../repositories/watch.list.repository.js';
 import { dispatchEmail } from './email.service.queue.js';
@@ -151,7 +151,7 @@ class ProductService {
             throw new Error('Seller không thể tự đặt giá sản phẩm của mình!');
         }
 
-        const globalFloor = (product.bid_count === 0 || !product.current_highest_bidder)
+        const globalFloor = (product.bid_count === 0  || product.auto_bid_map.size === 0 || !product.current_highest_bidder)
             ? product.start_price
             : product.current_highest_price + product.bid_increment;
 

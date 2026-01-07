@@ -3,6 +3,9 @@ import { useSearchParams, Link } from 'react-router-dom';
 import { productService } from '../services/product.service';
 import ProductSection from '../components/product/ProductSection';
 import FilterDropdown from '../components/common/FilterDropdown';
+import EmptyState from '../components/common/EmptyState';
+import Button from '../components/common/Button';
+import LoadingIndicator from '../components/common/LoadingIndicator';
 
 const SearchPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -92,9 +95,8 @@ const SearchPage = () => {
   // --- RENDER ---
   if (loading && products.length === 0) {
     return (
-      <div className="min-h-[50vh] flex flex-col justify-center items-center bg-white text-gray-600">
-        <div className="w-10 h-10 border-4 border-gray-200 border-t-blue-500 rounded-full animate-spin mb-4"></div>
-        <span className="text-lg font-medium">Đang tìm kiếm...</span>
+      <div className="min-h-[50vh] flex items-center justify-center bg-white">
+        <LoadingIndicator text="Đang tìm kiếm..." />
       </div>
     );
   }
@@ -125,7 +127,14 @@ const SearchPage = () => {
                 <div className="flex gap-3">
                     <FilterDropdown label="Sắp xếp" options={sortOptions} selectedValue={sortOrder} onSelect={(val) => { setSortOrder(val); setSearchParams({ keyword, page: 1 }); }} />
                     {sortOrder !== 'default' && (
-                        <button onClick={() => { setSortOrder('default'); setSearchParams({ keyword, page: 1 }); }} className="text-sm text-red-500 hover:underline font-medium cursor-pointer">Đặt lại</button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => { setSortOrder('default'); setSearchParams({ keyword, page: 1 }); }}
+                          className="text-red-600 hover:text-red-700"
+                        >
+                          Đặt lại
+                        </Button>
                     )}
                 </div>
             </div>
@@ -133,11 +142,17 @@ const SearchPage = () => {
 
         {/* Danh sách & Phân trang */}
         {products.length === 0 ? (
-             // Không tìm thấy sản phẩm nào
-             <div className="text-center py-16 text-gray-500">
-                <p className="text-xl mb-6">😞 Không tìm thấy sản phẩm nào khớp với từ khóa.</p>
-                <Link to="/" className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-6 rounded-lg">Quay về trang chủ</Link>
-             </div>
+             <EmptyState
+               variant="minimal"
+               icon="😞"
+               title="Không tìm thấy sản phẩm"
+               message="Không có sản phẩm nào khớp với từ khóa tìm kiếm."
+               action={{
+                 label: 'Quay về trang chủ',
+                 to: '/',
+                 variant: 'primary'
+               }}
+             />
         ) : (
              // Trường hợp 3: Có dữ liệu hiển thị
              <>
@@ -145,12 +160,38 @@ const SearchPage = () => {
                 
                 {totalPages >= 1 && (
                   <div className="mt-12 flex justify-center items-center space-x-2 select-none">
-                    <button onMouseOver={(e) => e.currentTarget.style.cursor = "pointer"} onClick={() => handlePageChange(page - 1)} disabled={page === 1} className={`px-4 py-2 border rounded-lg transition-colors ${page === 1 ? 'text-gray-300 border-gray-200 cursor-not-allowed' : 'text-gray-600 hover:bg-gray-100'}`}>Trước</button>
+                    <Button
+                      onClick={() => handlePageChange(page - 1)}
+                      disabled={page === 1}
+                      variant="outline"
+                      size="sm"
+                      className="min-w-[72px]"
+                    >
+                      Trước
+                    </Button>
                     {getPaginationItems().map((item, index) => {
                       if (item === '...') return <span key={`dots-${index}`} className="w-10 h-10 flex items-center justify-center text-gray-400">...</span>;
-                      return <button onMouseOver={(e) => e.currentTarget.style.cursor = "pointer"} key={item} onClick={() => handlePageChange(item)} className={`w-10 h-10 flex items-center justify-center rounded-lg border transition-colors ${page === item ? 'bg-blue-600 text-white font-bold' : 'text-gray-600 hover:bg-gray-50'}`}>{item}</button>;
+                      return (
+                        <Button
+                          key={item}
+                          onClick={() => handlePageChange(item)}
+                          variant={page === item ? 'primary' : 'outline'}
+                          size="sm"
+                          className="w-10 h-10 p-0"
+                        >
+                          {item}
+                        </Button>
+                      );
                     })}
-                    <button onMouseOver={(e) => e.currentTarget.style.cursor = "pointer"} onClick={() => handlePageChange(page + 1)} disabled={page === totalPages} className={`px-4 py-2 border rounded-lg transition-colors ${page === totalPages ? 'text-gray-300 border-gray-200 cursor-not-allowed' : 'text-gray-600 hover:bg-gray-100'}`}>Sau</button>
+                    <Button
+                      onClick={() => handlePageChange(page + 1)}
+                      disabled={page === totalPages}
+                      variant="outline"
+                      size="sm"
+                      className="min-w-[72px]"
+                    >
+                      Sau
+                    </Button>
                   </div>
                 )}
              </>

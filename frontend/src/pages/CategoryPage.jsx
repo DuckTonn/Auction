@@ -3,7 +3,10 @@ import { useParams, Link, useSearchParams } from 'react-router-dom';
 import { categoryService } from '../services/categoryService';
 import { productService } from '../services/product.service';
 import ProductSection from '../components/product/ProductSection';
-import FilterDropdown from '../components/common/FilterDropdown'; 
+import FilterDropdown from '../components/common/FilterDropdown';
+import EmptyState from '../components/common/EmptyState'; 
+import Button from '../components/common/Button';
+import LoadingIndicator from '../components/common/LoadingIndicator';
 
 const CategoryPage = () => {
   const { slug } = useParams();
@@ -98,7 +101,13 @@ const CategoryPage = () => {
   // --- 4. CẤU HÌNH OPTIONS ---
   const sortOptions = [ { label: "Mặc định", value: "default" }, { label: "Giá tăng dần", value: "price_asc" }, { label: "Giá giảm dần", value: "price_desc" }, { label: "Kết thúc gần", value: "end_time_asc" }, { label: "Kết thúc xa", value: "end_time_desc" } ];
 
-  if (loading && products.length === 0) return <div className="min-h-screen bg-white flex justify-center items-center text-gray-600 text-xl font-semibold">Đang tải dữ liệu...</div>;
+  if (loading && products.length === 0) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <LoadingIndicator text="Đang tải dữ liệu..." />
+      </div>
+    );
+  }
 
   // Hiển thị khi danh mục không tồn tại
   if (categoryNotFound) {
@@ -144,7 +153,14 @@ const CategoryPage = () => {
               <div className="flex gap-3">
                   <FilterDropdown label="Sắp xếp" options={sortOptions} selectedValue={sortOrder} onSelect={(val) => { setSortOrder(val); setSearchParams({ page: 1 }); }} />
                   {sortOrder !== 'default' && (
-                      <button onClick={() => { setSortOrder('default'); setSearchParams({ page: 1 }); }} className="text-sm text-red-500 hover:underline font-medium cursor-pointer">Đặt lại</button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => { setSortOrder('default'); setSearchParams({ page: 1 }); }}
+                        className="text-red-600 hover:text-red-700"
+                      >
+                        Đặt lại
+                      </Button>
                   )}
               </div>
           </div>
@@ -153,20 +169,53 @@ const CategoryPage = () => {
         <ProductSection title={`${categoryName} (${totalItems} kết quả)`} products={products} loading={loading} />
 
         {products.length === 0 && !loading && (
-            <div className="text-center py-16 text-gray-500">
-                <p className="text-xl mb-6">😞 Không tìm thấy sản phẩm nào trong danh mục này.</p>
-                <Link to="/" className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-6 rounded-lg">Quay về trang chủ</Link>
-            </div>
+            <EmptyState
+              variant="minimal"
+              icon="😞"
+              title="Không có sản phẩm"
+              message="Không tìm thấy sản phẩm nào trong danh mục này."
+              action={{
+                label: 'Quay về trang chủ',
+                to: '/',
+                variant: 'primary'
+              }}
+            />
         )}
 
         {totalPages > 1 && (
           <div className="mt-12 flex justify-center items-center space-x-2 select-none">
-            <button onMouseOver={(e) => e.currentTarget.style.cursor = "pointer"} onClick={() => handlePageChange(page - 1)} disabled={page === 1} className={`px-4 py-2 border rounded-lg transition-colors ${page === 1 ? 'text-gray-300 border-gray-200 cursor-not-allowed' : 'text-gray-600 border-gray-300 hover:bg-gray-100'}`}>Trước</button>
+            <Button
+              onClick={() => handlePageChange(page - 1)}
+              disabled={page === 1}
+              variant="outline"
+              size="sm"
+              className="min-w-[72px]"
+            >
+              Trước
+            </Button>
             {getPaginationItems().map((item, index) => {
               if (item === '...') return <span key={`dots-${index}`} className="w-10 h-10 flex items-center justify-center text-gray-400">...</span>;
-              return <button onMouseOver={(e) => e.currentTarget.style.cursor = "pointer"} key={item} onClick={() => handlePageChange(item)} className={`w-10 h-10 flex items-center justify-center rounded-lg border transition-colors ${page === item ? 'bg-blue-600 text-white border-blue-600 shadow-md font-bold' : 'text-gray-600 border-gray-300 hover:bg-gray-50'}`}>{item}</button>;
+              return (
+                <Button
+                  key={item}
+                  onClick={() => handlePageChange(item)}
+                  variant={page === item ? 'primary' : 'outline'}
+                  size="sm"
+                  className="w-10 h-10 p-0"
+                >
+                  {item}
+                </Button>
+              );
             })}
-            <button onMouseOver={(e) => e.currentTarget.style.cursor = "pointer"} onClick={() => handlePageChange(page + 1)} disabled={page === totalPages} className={`px-4 py-2 border rounded-lg transition-colors ${page === totalPages ? 'text-gray-300 border-gray-200 cursor-not-allowed' : 'text-gray-600 border-gray-300 hover:bg-gray-100'}`}>Sau</button>
+            <Button
+              onClick={() => handlePageChange(page + 1)}
+              disabled={page === totalPages}
+              variant="outline"
+              size="sm"
+              className="min-w-[72px]"
+            >
+              Sau
+            </Button>
           </div>
         )}
 

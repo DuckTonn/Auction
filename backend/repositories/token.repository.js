@@ -1,4 +1,4 @@
-import { RefreshToken } from '../schema.js';
+import { RefreshToken } from '../db/schema.js';
 
 class TokenRepository {
     async saveRefreshToken(userId, refreshToken, expiry) {

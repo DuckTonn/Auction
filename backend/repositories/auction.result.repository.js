@@ -1,4 +1,4 @@
-import { AuctionResult } from '../schema.js';
+import { AuctionResult } from '../db/schema.js';
 
 class AuctionResultRepository {
     async create(resultData, session = null) {

@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { auctionService } from '../services/auctionService';
 import ProductSection from '../components/product/ProductSection';
+import Button from '../components/common/Button';
+import EmptyState from '../components/common/EmptyState';
 
 export default function Dashboard() {
   const { user, logout } = useAuth();
@@ -45,16 +47,18 @@ export default function Dashboard() {
         
         <div className="flex gap-3">
           <Link to="/create-auction">
-            <button className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg font-medium transition duration-200 shadow-sm flex items-center cursor-pointer active:scale-95">
-              <span className="mr-2 text-lg">⊕</span> Tạo đấu giá mới
-            </button>
+            <Button variant="primary" size="md">
+              <span className="text-lg">⊕</span> Tạo đấu giá mới
+            </Button>
           </Link>
-          <button 
+          <Button
+            variant="outline"
+            size="md"
             onClick={logout}
-            className="bg-white border border-gray-300 text-gray-700 hover:bg-red-50 hover:text-red-600 hover:border-red-200 px-5 py-2.5 rounded-lg font-medium transition duration-200 cursor-pointer active:scale-95"
+            className="hover:bg-red-50 hover:text-red-600 hover:border-red-200"
           >
             Đăng xuất
-          </button>
+          </Button>
         </div>
       </header>
 
@@ -77,16 +81,17 @@ export default function Dashboard() {
             products={myAuctions}
           />
         ) : (
-          <div className="text-center py-16 bg-white rounded-xl border border-dashed border-gray-300 shadow-sm">
-            <div className="text-4xl mb-3">📭</div>
-            <p className="text-gray-500 text-lg mb-4">Bạn chưa có sản phẩm đấu giá nào.</p>
-            <Link 
-              to="/create-auction"
-              className="text-blue-600 font-semibold hover:text-blue-800 hover:underline transition-colors"
-            >
-              Tạo đấu giá đầu tiên ngay!
-            </Link>
-          </div>
+          <EmptyState
+            variant="bordered"
+            icon="📭"
+            title="Chưa có sản phẩm đấu giá"
+            message="Bạn chưa có sản phẩm đấu giá nào."
+            action={{
+              label: 'Tạo đấu giá đầu tiên ngay!',
+              to: '/create-auction',
+              variant: 'primary'
+            }}
+          />
         )}
       </section>
 

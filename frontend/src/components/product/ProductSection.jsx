@@ -405,7 +405,7 @@ function ProductInfo({ product, user }) {
             <p className="text-[9px] sm:text-[10px] text-gray-400 uppercase font-bold tracking-wider mb-0.5">
               Người bán
             </p>
-            <p className="text-xs sm:text-sm font-semibold text-gray-800 truncate cursor-pointer hover:text-blue-600 transition-colors" title={product.seller?.full_name}>
+            <p className="text-xs sm:text-sm font-semibold text-gray-800 truncate" title={product.seller?.full_name}>
               {product.seller?.full_name || "Ẩn danh"}
             </p>
           </div>

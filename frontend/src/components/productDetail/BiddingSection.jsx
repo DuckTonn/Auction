@@ -60,7 +60,7 @@ export default function BiddingSection({ product, minValidPrice, user, isRealSel
         return
         }
         if (bidAmount < minValidPrice) {
-        alert(`Giá đặt phải tối thiểu ₫${new Intl.NumberFormat('vi-VN').format(minValidPrice)}`)
+        ToastNotification(`Giá đặt phải tối thiểu ₫${new Intl.NumberFormat('vi-VN').format(minValidPrice)}`, 'warning');
         return
         }
 

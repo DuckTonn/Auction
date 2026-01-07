@@ -259,6 +259,12 @@ class AuthService {
         let user = await userRepository.findByProvider("google", googleId);
 
         if (!user) {
+            // Kiểm tra xem email có bị xóa không
+            const deletedUser = await userRepository.findByEmailIncludingDeleted(email);
+            if (deletedUser && deletedUser.is_deleted) {
+                throw new Error('Tài khoản này đã bị vô hiệu hóa!');
+            }
+
             // Kiểm tra xem mail có tồn tại không
             const existingUser = await userRepository.findByEmail(email);
             if (!existingUser) {
@@ -325,6 +331,12 @@ class AuthService {
         let user = await userRepository.findByProvider("facebook", fbId);
 
         if (!user) {
+            // Kiểm tra xem email có bị xóa không
+            const deletedUser = await userRepository.findByEmailIncludingDeleted(email);
+            if (deletedUser && deletedUser.is_deleted) {
+                throw new Error('Tài khoản này đã bị vô hiệu hóa!');
+            }
+
             // Kiểm tra xem mail có tồn tại không
             const existingUser = await userRepository.findByEmail(email);
             if (!existingUser) {
@@ -394,6 +406,12 @@ class AuthService {
         let user = await userRepository.findByProvider("github", githubId);
 
         if (!user) {
+            // Kiểm tra xem email có bị xóa không
+            const deletedUser = await userRepository.findByEmailIncludingDeleted(email);
+            if (deletedUser && deletedUser.is_deleted) {
+                throw new Error('Tài khoản này đã bị vô hiệu hóa!');
+            }
+
             const existingUser = await userRepository.findByEmail(email);
 
             if (!existingUser) {

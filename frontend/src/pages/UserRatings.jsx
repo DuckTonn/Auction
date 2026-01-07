@@ -78,10 +78,6 @@ const UserRatings = () => {
         }
     };
 
-    const getUserName = () => {
-        return ratedUser?.full_name || 'người dùng';
-    };
-
     const maskName = (name) => {
         if (!name || typeof name !== 'string') return 'u***r'; 
 
@@ -102,6 +98,10 @@ const UserRatings = () => {
         const middle = "*".repeat(middleLength);
         
         return `${first}${middle}${last}`;
+    };
+
+    const getUserName = () => {
+        return maskName(ratedUser?.full_name) || 'người dùng';
     };
 
     if (loading) {
@@ -131,7 +131,13 @@ const UserRatings = () => {
 
                 <div className="mb-6">
                     <h1 className="text-2xl font-bold text-gray-900 mb-2">Đánh giá và phản hồi</h1>
-                    <p className="text-gray-600">Xem các đánh giá mà {getUserName()} đã nhận</p>
+                    <p className="text-gray-600">
+                        Xem các đánh giá mà{" "}
+                        <span className="font-semibold text-yellow-900">
+                            {getUserName()}
+                        </span>{" "}
+                        đã nhận
+                    </p>
                 </div>
 
                 <div className="grid grid-cols-4 gap-4 mb-6">

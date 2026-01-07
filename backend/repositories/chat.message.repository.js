@@ -1,4 +1,4 @@
-import { ChatMessage } from '../schema.js';
+import { ChatMessage } from '../db/schema.js';
 
 class ChatMessageRepository {
   async create({ auction_result, sender, content }) {

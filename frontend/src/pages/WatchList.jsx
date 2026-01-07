@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { productService } from '../services/product.service';
 import ToastNotification from '../components/common/ToastNotification';
 import { ProductCard } from '../components/product/ProductSection';
+import Button from '../components/common/Button';
 
 export default function WatchList() {
   const [watchList, setWatchList] = useState([]);
@@ -274,18 +275,20 @@ export default function WatchList() {
                 </span>
               </div>
               <div className="flex gap-2">
-                <button
+                <Button
+                  variant="primary"
+                  size="xs"
                   onClick={handleUndo}
-                  className="px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 transition-colors cursor-pointer"
                 >
                   Hoàn tác
-                </button>
-                <button
+                </Button>
+                <Button
+                  variant="danger"
+                  size="xs"
                   onClick={() => handleRemoveNow(itemToRemove.product._id)}
-                  className="px-3 py-1.5 bg-red-600 text-white text-xs font-medium rounded-lg hover:bg-red-700 transition-colors cursor-pointer"
                 >
                   Xóa ngay
-                </button>
+                </Button>
               </div>
             </div>
           </div>

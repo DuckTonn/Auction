@@ -1,6 +1,6 @@
 import { auctionResultRepository } from '../repositories/auction.result.repository.js';
 import { ratingService } from '../services/rating.service.js';
-import { executeTransaction } from '../db.helper.js';
+import { executeTransaction } from '../db/db.helper.js';
 
 class AuctionResultService {
     async getOrderDetails(orderId, userId) {

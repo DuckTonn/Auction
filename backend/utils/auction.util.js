@@ -1,5 +1,5 @@
-import { User } from '../schema.js';
-import { Bid } from '../schema.js';
+import { User } from '../db/schema.js';
+import { Bid } from '../db/schema.js';
 
 export const recalculateAuctionState = async (product, currentHolderId, session = null) => {
     const allBids = Array.from(product.auto_bid_map.entries())

@@ -6,6 +6,7 @@ import { profileService } from '../services/profileService';
 import ToastNotification from '../components/common/ToastNotification.jsx'; 
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import Button from '../components/common/Button';
 
 const UserProfile = () => {
   const navigate = useNavigate();
@@ -28,6 +29,18 @@ const UserProfile = () => {
     address: '',
     email: '',
     date_of_birth: ''
+  });
+
+  const [errors, setErrors] = useState({
+    full_name: '',
+    phone_number: '',
+    email: ''
+  });
+
+  const [passErrors, setPassErrors] = useState({
+    oldPassword: '',
+    newPassword: '',
+    confirmPassword: ''
   });
 
   const validatePhone = (phone) => {
@@ -95,24 +108,47 @@ const UserProfile = () => {
   const handleCloseModal = () => {
     setShowPassModal(false);
     setPassData({ oldPassword: '', newPassword: '', confirmPassword: '' });
+    setPassErrors({ oldPassword: '', newPassword: '', confirmPassword: '' });
   };
 
   const handleChangeInfo = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+    
+    // Clear error when user starts typing
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: '' }));
+    }
   };
 
   const handleSaveInfo = async (e) => {
     e.preventDefault();
     
-    if (!formData.full_name.trim()) return ToastNotification("Họ tên không được để trống", "warning");
+    // Validate all fields
+    const newErrors = {
+      full_name: '',
+      phone_number: '',
+      email: ''
+    };
+    
+    if (!formData.full_name.trim()) {
+      newErrors.full_name = 'Họ tên không được để trống';
+    }
     
     if (formData.phone_number && !validatePhone(formData.phone_number)) {
-      return ToastNotification("Số điện thoại không hợp lệ (chỉ chứa số, 9-15 ký tự)", "warning");
+      newErrors.phone_number = 'Số điện thoại không hợp lệ (chỉ chứa số, 9-15 ký tự)';
     }
 
     if (!validateEmail(formData.email)) {
-      return ToastNotification("Email không đúng định dạng", "warning");
+      newErrors.email = 'Email không đúng định dạng';
+    }
+    
+    setErrors(newErrors);
+    
+    const hasErrors = Object.values(newErrors).some(error => error !== '');
+    
+    if (hasErrors) {
+      return;
     }
 
     const isEmailChanged = formData.email !== user.email;
@@ -145,6 +181,7 @@ const UserProfile = () => {
       setIsEditing(false);
       setShowOtpModal(false);
       setPendingEmailUpdate(null);
+      setErrors({ full_name: '', phone_number: '', email: '' });
       ToastNotification("Cập nhật thông tin thành công!", "success");
     } else {
       ToastNotification(res.message, "error");
@@ -165,11 +202,39 @@ const UserProfile = () => {
 
   const handleChangePass = async (e) => {
     e.preventDefault();
-    if (passData.newPassword !== passData.confirmPassword) {
-      return ToastNotification("Mật khẩu xác nhận không khớp!", "warning");
+  
+    const newPassErrors = {
+      oldPassword: '',
+      newPassword: '',
+      confirmPassword: ''
+    };
+    
+    if (!passData.oldPassword) {
+      newPassErrors.oldPassword = 'Vui lòng nhập mật khẩu cũ';
     }
+    
+    if (!passData.newPassword) {
+      newPassErrors.newPassword = 'Vui lòng nhập mật khẩu mới';
+    }
+    
+    if (!passData.confirmPassword) {
+      newPassErrors.confirmPassword = 'Vui lòng xác nhận mật khẩu mới';
+    }
+    
+    if (passData.newPassword !== passData.confirmPassword) {
+      newPassErrors.confirmPassword = 'Mật khẩu xác nhận không khớp!';
+    }
+    
     if (passData.oldPassword === passData.newPassword) {
-      return ToastNotification("Mật khẩu mới không được trùng mật khẩu cũ!", "warning");
+      newPassErrors.newPassword = 'Mật khẩu mới không được trùng mật khẩu cũ!';
+    }
+    
+    setPassErrors(newPassErrors);
+
+    const hasErrors = Object.values(newPassErrors).some(error => error !== '');
+    
+    if (hasErrors) {
+      return;
     }
     
     const res = await profileService.changePassword(passData.oldPassword, passData.newPassword);
@@ -259,7 +324,20 @@ const UserProfile = () => {
                 <div className="w-full">
                   <p className="text-sm text-gray-500 mb-1">Email {isEditing && <span className='text-xs text-red-500'>(Cần xác thực OTP nếu đổi)</span>}</p>
                   {isEditing ? (
-                     <input type="email" name="email" value={formData.email} onChange={handleChangeInfo} className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black outline-none transition-all" />
+                    <>
+                      <input 
+                        type="email" 
+                        name="email" 
+                        value={formData.email} 
+                        onChange={handleChangeInfo} 
+                        className={`w-full p-2 border rounded-lg focus:ring-2 focus:ring-black outline-none transition-all ${
+                          errors.email ? 'border-red-500' : 'border-gray-300'
+                        }`} 
+                      />
+                      {errors.email && (
+                        <p className="mt-1 text-sm text-red-600">{errors.email}</p>
+                      )}
+                    </>
                   ) : <p className="font-medium text-gray-900 py-1">{user.email}</p>}
                 </div>
               </div>
@@ -271,7 +349,20 @@ const UserProfile = () => {
                 <div className="w-full">
                   <p className="text-sm text-gray-500 mb-1">Họ tên</p>
                   {isEditing ? (
-                    <input type="text" name="full_name" value={formData.full_name} onChange={handleChangeInfo} className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black outline-none transition-all" />
+                    <>
+                      <input 
+                        type="text" 
+                        name="full_name" 
+                        value={formData.full_name} 
+                        onChange={handleChangeInfo} 
+                        className={`w-full p-2 border rounded-lg focus:ring-2 focus:ring-black outline-none transition-all ${
+                          errors.full_name ? 'border-red-500' : 'border-gray-300'
+                        }`} 
+                      />
+                      {errors.full_name && (
+                        <p className="mt-1 text-sm text-red-600">{errors.full_name}</p>
+                      )}
+                    </>
                   ) : <p className="font-medium text-gray-900 py-1">{formData.full_name || "Chưa cập nhật"}</p>}
                 </div>
               </div>
@@ -283,7 +374,20 @@ const UserProfile = () => {
                 <div className="w-full">
                   <p className="text-sm text-gray-500 mb-1">Số điện thoại</p>
                   {isEditing ? (
-                    <input type="text" name="phone_number" value={formData.phone_number} onChange={handleChangeInfo} className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black outline-none transition-all" />
+                    <>
+                      <input 
+                        type="text" 
+                        name="phone_number" 
+                        value={formData.phone_number} 
+                        onChange={handleChangeInfo} 
+                        className={`w-full p-2 border rounded-lg focus:ring-2 focus:ring-black outline-none transition-all ${
+                          errors.phone_number ? 'border-red-500' : 'border-gray-300'
+                        }`} 
+                      />
+                      {errors.phone_number && (
+                        <p className="mt-1 text-sm text-red-600">{errors.phone_number}</p>
+                      )}
+                    </>
                   ) : <p className="font-medium text-gray-900 py-1">{formData.phone_number || "Chưa cập nhật"}</p>}
                 </div>
               </div>
@@ -314,12 +418,25 @@ const UserProfile = () => {
 
               {isEditing && (
                 <div className="flex gap-3 pt-4 border-t border-gray-100">
-                  <button type="submit" disabled={loading} className="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors cursor-pointer">
-                    {loading ? 'Đang lưu...' : 'Lưu thay đổi'}
-                  </button>
-                  <button type="button" onClick={handleCancel} className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 px-4 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors cursor-pointer">
+                  <Button
+                    type="submit"
+                    variant="success"
+                    size="md"
+                    disabled={loading}
+                    loading={loading}
+                    className="flex-1"
+                  >
+                    Lưu thay đổi
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="md"
+                    onClick={handleCancel}
+                    className="flex-1"
+                  >
                     Hủy
-                  </button>
+                  </Button>
                 </div>
               )}
             </form>
@@ -483,10 +600,24 @@ const UserProfile = () => {
               />
               
               <div className="flex gap-3">
-                 <button onClick={() => setShowOtpModal(false)} className="flex-1 bg-gray-100 hover:bg-gray-200 py-2 rounded-lg font-medium cursor-pointer">Hủy</button>
-                 <button onClick={handleVerifyOtp} disabled={loading} className="flex-1 bg-black hover:bg-gray-800 text-white py-2 rounded-lg font-medium cursor-pointer">
-                   {loading ? '...' : 'Xác nhận'}
-                 </button>
+                 <Button
+                   variant="outline"
+                   size="md"
+                   onClick={() => setShowOtpModal(false)}
+                   className="flex-1"
+                 >
+                   Hủy
+                 </Button>
+                 <Button
+                   variant="black"
+                   size="md"
+                   onClick={handleVerifyOtp}
+                   disabled={loading}
+                   loading={loading}
+                   className="flex-1"
+                 >
+                   Xác nhận
+                 </Button>
               </div>
            </div>
         </div>
@@ -505,23 +636,72 @@ const UserProfile = () => {
             <form onSubmit={handleChangePass} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Mật khẩu cũ</label>
-                <input type="password" required className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black outline-none"
-                  value={passData.oldPassword} onChange={e => setPassData({...passData, oldPassword: e.target.value})} />
+                <input 
+                  type="password" 
+                  className={`w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-black outline-none ${
+                    passErrors.oldPassword ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                  value={passData.oldPassword} 
+                  onChange={e => {
+                    setPassData({...passData, oldPassword: e.target.value});
+                    if (passErrors.oldPassword) setPassErrors(prev => ({...prev, oldPassword: ''}));
+                  }} 
+                />
+                {passErrors.oldPassword && (
+                  <p className="mt-1 text-sm text-red-600">{passErrors.oldPassword}</p>
+                )}
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Mật khẩu mới</label>
-                <input type="password" required className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black outline-none"
-                  value={passData.newPassword} onChange={e => setPassData({...passData, newPassword: e.target.value})} />
+                <input 
+                  type="password" 
+                  className={`w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-black outline-none ${
+                    passErrors.newPassword ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                  value={passData.newPassword} 
+                  onChange={e => {
+                    setPassData({...passData, newPassword: e.target.value});
+                    if (passErrors.newPassword) setPassErrors(prev => ({...prev, newPassword: ''}));
+                  }} 
+                />
+                {passErrors.newPassword && (
+                  <p className="mt-1 text-sm text-red-600">{passErrors.newPassword}</p>
+                )}
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Xác nhận mật khẩu mới</label>
-                <input type="password" required className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black outline-none"
-                  value={passData.confirmPassword} onChange={e => setPassData({...passData, confirmPassword: e.target.value})} />
+                <input 
+                  type="password" 
+                  className={`w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-black outline-none ${
+                    passErrors.confirmPassword ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                  value={passData.confirmPassword} 
+                  onChange={e => {
+                    setPassData({...passData, confirmPassword: e.target.value});
+                    if (passErrors.confirmPassword) setPassErrors(prev => ({...prev, confirmPassword: ''}));
+                  }} 
+                />
+                {passErrors.confirmPassword && (
+                  <p className="mt-1 text-sm text-red-600">{passErrors.confirmPassword}</p>
+                )}
               </div>
               
               <div className="flex justify-end gap-3 mt-6">
-                <button type="button" onClick={handleCloseModal} className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 font-medium cursor-pointer">Đóng</button>
-                <button type="submit" className="px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 font-medium cursor-pointer">Xác nhận</button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="md"
+                  onClick={handleCloseModal}
+                >
+                  Đóng
+                </Button>
+                <Button
+                  type="submit"
+                  variant="black"
+                  size="md"
+                >
+                  Xác nhận
+                </Button>
               </div>
             </form>
           </div>

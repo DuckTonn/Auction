@@ -23,7 +23,7 @@ export default function ProductInfo({ product, minValidPrice, lastBid, user, isR
         return (
             <>
                 ⭐ {ratio}%
-                <span className="text-gray-400 ml-1">({ratingCount} đánh giá)</span>
+                <span className="text-gray-400 ml-1 group-hover:text-purple-600 transition-colors">({ratingCount} đánh giá)</span>
             </>
         );
     };
@@ -193,15 +193,13 @@ export default function ProductInfo({ product, minValidPrice, lastBid, user, isR
                 {avatar(product.seller?.full_name)}
                 <div>
                     <div className="text-xs text-gray-500 uppercase font-semibold">Người bán</div>
+                    <div className="font-bold text-gray-900">{product.seller?.full_name || "Ẩn danh"}</div>
                     <Link 
                         to={`/users/${product.seller?._id}/ratings`}
-                        className="font-bold text-gray-900 hover:text-blue-600 hover:underline transition-colors"
+                        className="text-xs text-yellow-500 flex items-center hover:text-purple-600 transition-colors group"
                     >
-                        {product.seller?.full_name || "Ẩn danh"}
-                    </Link>
-                    <div className="text-xs text-yellow-500 flex items-center">
                         {product.seller && formatRating(product.seller.rating_score, product.seller.rating_count)}
-                    </div>
+                    </Link>
                 </div>
             </div>
 
@@ -211,21 +209,21 @@ export default function ProductInfo({ product, minValidPrice, lastBid, user, isR
                 <div>
                     <div className="text-xs text-yellow-700 uppercase font-bold mb-0.5">{product.auction_status === 'active' ? 'Người giữ giá cao nhất' : 'Người thắng đấu giá'}</div>
                     <div className="font-bold text-gray-900">
-                        {isRealSeller ? (
-                            <Link 
-                                to={`/users/${product.current_highest_bidder._id}/ratings`}
-                                className="hover:text-blue-600 hover:underline transition-colors"
-                            >
-                                {product.current_highest_bidder.full_name}
-                            </Link>
-                        ) : (
-                            <span>{maskName(product.current_highest_bidder.full_name)}</span>
-                        )}
+                        <span>{maskName(product.current_highest_bidder.full_name)}</span>
                         {user?._id.toString() === product.current_highest_bidder._id.toString() ? ' (Bạn)' : ''}
                     </div>
-                    <div className="text-xs text-yellow-500 flex items-center">
-                        {formatRating(product.current_highest_bidder.rating_score, product.current_highest_bidder.rating_count)}
-                    </div>
+                    {isRealSeller ? (
+                        <Link
+                            to={`/users/${product.current_highest_bidder._id}/ratings`}
+                            className="text-xs text-yellow-500 flex items-center hover:text-purple-600 transition-colors group"
+                        >
+                            {formatRating(product.current_highest_bidder.rating_score, product.current_highest_bidder.rating_count)}
+                        </Link>
+                    ) : (
+                        <div className="text-xs text-yellow-500 flex items-center">
+                            {formatRating(product.current_highest_bidder.rating_score, product.current_highest_bidder.rating_count)}
+                        </div>
+                    )}
                 </div>
                 </div>
             )}

@@ -1,6 +1,8 @@
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import ToastNotification from '../components/common/ToastNotification';
+import Button from '../components/common/Button';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -10,13 +12,36 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [errors, setErrors] = useState({});
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, []);
+    
+    // Hiển thị lỗi từ social login nếu có
+    if (location.state?.error) {
+      ToastNotification(location.state.error, 'error', 5);
+      // Xóa error khỏi state để không hiển lại khi reload
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.state, location.pathname, navigate]);
+
+  const validate = () => {
+    const newErrors = {};
+    if (!email.trim()) {
+      newErrors.email = 'Email là bắt buộc';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      newErrors.email = 'Email không hợp lệ';
+    }
+    if (!password.trim()) {
+      newErrors.password = 'Mật khẩu là bắt buộc';
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    if (!validate()) return;
     setLoading(true);
     setError('');
 
@@ -28,8 +53,9 @@ export default function Login() {
     setLoading(false);
   };
 
-  const handleInputChange = (setter) => (e) => {
+  const handleInputChange = (setter, field) => (e) => {
     setter(e.target.value);
+    setErrors(prev => ({ ...prev, [field]: '' }));
     if (error) setError('');
   };
 
@@ -39,7 +65,7 @@ export default function Login() {
     const state = "google"; // Đánh dấu đây là login google
 
     if (!googleClientId || googleClientId.includes('placeholder')) {
-      alert("Note: You are using a placeholder Client ID.");
+      ToastNotification('Chú ý: Bạn đang sử dụng Client ID mặc định', 'warning');
     }
 
     const targetUrl = `https://accounts.google.com/o/oauth2/v2/auth?redirect_uri=${encodeURIComponent(
@@ -55,7 +81,7 @@ export default function Login() {
     const state = "facebook"; // Đánh dấu đây là login facebook
 
     if (!facebookAppId || facebookAppId.includes('placeholder')) {
-      alert("Note: You are using a placeholder Client ID.");
+      ToastNotification('Chú ý: Bạn đang sử dụng Client ID mặc định', 'warning');
     }
 
     const targetUrl = `https://www.facebook.com/v19.0/dialog/oauth?client_id=${facebookAppId}&redirect_uri=${encodeURIComponent(redirectUri)}&state=${state}&scope=email,public_profile`;
@@ -69,7 +95,7 @@ export default function Login() {
     const state = "github"; // Đánh dấu đây là login github
 
     if (!githubClientId || githubClientId.includes('placeholder')) {
-      alert("Note: You are using a placeholder Client ID.");
+      ToastNotification('Chú ý: Bạn đang sử dụng Client ID mặc định', 'warning');
     }
 
     // GitHub cần scope user:email để lấy email người dùng
@@ -92,18 +118,18 @@ export default function Login() {
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1.5">Email</label>
             <input
-              type="email"
+              type="text"
               placeholder="name@example.com"
               value={email}
-              onChange={handleInputChange(setEmail)}
-              required
+              onChange={handleInputChange(setEmail, 'email')}
               disabled={loading}
               className={`w-full px-4 py-3 rounded-lg border text-sm outline-none transition-all duration-200
-                ${error 
+                ${errors.email || error 
                   ? 'border-red-500 bg-red-50 text-red-900 focus:ring-2 focus:ring-red-200' 
                   : 'border-slate-300 bg-slate-50 text-slate-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 hover:border-slate-400'
                 } disabled:opacity-70 disabled:cursor-not-allowed`}
             />
+            {errors.email && <p className="text-red-600 text-sm mt-1">{errors.email}</p>}
           </div>
 
           {/* Password Input */}
@@ -121,15 +147,15 @@ export default function Login() {
               type="password"
               placeholder="••••••••"
               value={password}
-              onChange={handleInputChange(setPassword)}
-              required
+              onChange={handleInputChange(setPassword, 'password')}
               disabled={loading}
               className={`w-full px-4 py-3 rounded-lg border text-sm outline-none transition-all duration-200
-                ${error 
+                ${errors.password || error 
                   ? 'border-red-500 bg-red-50 text-red-900 focus:ring-2 focus:ring-red-200' 
                   : 'border-slate-300 bg-slate-50 text-slate-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 hover:border-slate-400'
                 } disabled:opacity-70 disabled:cursor-not-allowed`}
             />
+            {errors.password && <p className="text-red-600 text-sm mt-1">{errors.password}</p>}
           </div>
 
           {/* Error Message */}
@@ -141,18 +167,17 @@ export default function Login() {
           )}
 
           {/* Submit Button */}
-          <button 
-            type="submit" 
+          <Button
+            type="submit"
+            variant="primary"
+            size="lg"
+            fullWidth
             disabled={loading}
-            className="w-full py-3.5 rounded-lg bg-blue-600 text-white font-bold text-sm uppercase tracking-wide shadow-lg shadow-blue-500/30 hover:bg-blue-700 hover:shadow-blue-500/40 active:scale-[0.98] transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none cursor-pointer"
+            loading={loading}
+            className="uppercase tracking-wide shadow-lg shadow-blue-500/30 hover:shadow-blue-500/40"
           >
-            {loading ? (
-              <span className="flex items-center justify-center gap-2">
-                <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                Đang xử lý...
-              </span>
-            ) : 'Đăng nhập'}
-          </button>
+            {loading ? 'Đang xử lý...' : 'Đăng nhập'}
+          </Button>
         </form>
 
         {/* Divider */}

@@ -1,6 +1,20 @@
 import { Link } from 'react-router-dom'
-import { avatar, maskName, formatDateTime, formatPrice } from './productDetail.utils.jsx'
+import { calculateRatingRatio, avatar, maskName, formatDateTime, formatPrice } from './productDetail.utils.jsx'
 import { Medal } from 'lucide-react';
+
+// Helper function to format rating display
+const formatRating = (ratingScore, ratingCount) => {
+    if (!ratingCount || ratingCount === 0) {
+        return 'Chưa có đánh giá';
+    }
+    const ratio = calculateRatingRatio(ratingScore, ratingCount);
+    return (
+        <>
+            ⭐ {ratio}%
+            <span className="text-gray-400 ml-1 group-hover/rating:text-purple-600 transition-colors">({ratingCount} đánh giá)</span>
+        </>
+    );
+};
 
 export default function BidRow({ bid, index, isRealSeller, currentUserId, onBanUser, product }) {
     let bidderName = bid.user?.full_name;
@@ -36,18 +50,14 @@ export default function BidRow({ bid, index, isRealSeller, currentUserId, onBanU
                     {winnerExists && <Medal className="text-orange-500 w-8 h-8" />}
                     {avatar(bidderName, 8)}
                     <span className={`font-medium text-sm leading-tight ${isInvalid ? 'text-gray-500 line-through italic' : 'text-gray-800'}`}>
-                        {bidderName ? (
-                            isRealSeller && !isInvalid ? (
-                                <Link 
-                                    to={`/users/${bid.user?._id}/ratings`}
-                                    className="hover:text-blue-600 hover:underline transition-colors"
-                                >
-                                    {bidderName}
-                                </Link>
-                            ) : (
-                                <span>{maskName(bidderName)}</span>
-                            )
-                        ) : '********'}
+                        <span>{bidderName ? maskName(bidderName) : '********'}</span>
+                        {isRealSeller && !isInvalid && (
+                            <Link
+                                to={`/users/${bid.user?._id}/ratings`}
+                                className="text-xs text-yellow-500 flex items-center hover:text-purple-600 transition-colors group/rating">
+                                {formatRating(bid.user?.rating_score, bid.user?.rating_count)}
+                            </Link>
+                        )}
                         {isUserMe && ' (Bạn)'}
                     </span>
                 </div>

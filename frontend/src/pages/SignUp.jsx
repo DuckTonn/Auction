@@ -1,6 +1,8 @@
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useState, useEffect, useRef } from 'react'
 import { authService } from '../services/authService'
+import ToastNotification from '../components/common/ToastNotification'
+import Button from '../components/common/Button'
 
 const ReCAPTCHA = ({ onChange, error, checked, onCheckChange }) => {
   const SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY
@@ -87,6 +89,7 @@ const ReCAPTCHA = ({ onChange, error, checked, onCheckChange }) => {
 
 export default function SignUp() {
   const navigate = useNavigate()
+  const location = useLocation()
   const [step, setStep] = useState(1)
   const [formData, setFormData] = useState({
     full_name: '',
@@ -100,19 +103,41 @@ export default function SignUp() {
   const [captchaChecked, setCaptchaChecked] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [errors, setErrors] = useState({})
   const [countdown, setCountdown] = useState(0)
 
   useEffect(() => {
     window.scrollTo(0, 0)
-  }, [])
-
-  useEffect(() => {
-    let timer
-    if (countdown > 0) {
-      timer = setTimeout(() => setCountdown(countdown - 1), 1000)
+    
+    // Hiển thị lỗi từ social login nếu có
+    if (location.state?.error) {
+      ToastNotification(location.state.error, 'error', 5);
+      // Xóa error khỏi state để không hiển lại khi reload
+      navigate(location.pathname, { replace: true, state: {} });
     }
-    return () => clearTimeout(timer)
-  }, [countdown])
+  }, [location.state, location.pathname, navigate])
+
+  const validateStep1 = () => {
+    const newErrors = {};
+    if (!formData.full_name.trim()) newErrors.full_name = 'Họ và tên là bắt buộc';
+    if (!formData.email.trim()) newErrors.email = 'Email là bắt buộc';
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) newErrors.email = 'Email không hợp lệ';
+    if (!formData.address.trim()) newErrors.address = 'Địa chỉ là bắt buộc';
+    if (!formData.password.trim()) newErrors.password = 'Mật khẩu là bắt buộc';
+    else if (formData.password.length < 6) newErrors.password = 'Mật khẩu phải có ít nhất 6 ký tự';
+    if (!formData.confirmPassword.trim()) newErrors.confirmPassword = 'Xác nhận mật khẩu là bắt buộc';
+    else if (formData.password !== formData.confirmPassword) newErrors.confirmPassword = 'Mật khẩu xác nhận không khớp';
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const validateStep2 = () => {
+    const newErrors = {};
+    if (!formData.otp.trim()) newErrors.otp = 'Mã OTP là bắt buộc';
+    else if (!/^[0-9]{6}$/.test(formData.otp)) newErrors.otp = 'Mã OTP phải là 6 số';
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -120,6 +145,7 @@ export default function SignUp() {
       ...prev,
       [name]: value
     }))
+    setErrors(prev => ({ ...prev, [name]: '' }))
     if (error) setError('')
   }
 
@@ -137,27 +163,7 @@ export default function SignUp() {
 
   const handleSendOTP = async (e) => {
     e.preventDefault()
-
-    // Validation
-    if (!formData.email || !formData.full_name || !formData.address) {
-      setError('Vui lòng điền đầy đủ thông tin')
-      return
-    }
-
-    if (formData.password.length < 6) {
-      setError('Mật khẩu phải có ít nhất 6 ký tự')
-      return
-    }
-
-    if (formData.password !== formData.confirmPassword) {
-      setError('Mật khẩu xác nhận không khớp')
-      return
-    }
-
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      setError('Email không hợp lệ')
-      return
-    }
+    if (!validateStep1()) return;
 
     if (!captchaChecked) {
       setError('Vui lòng xác nhận bạn không phải robot')
@@ -196,11 +202,7 @@ export default function SignUp() {
 
   const handleRegisterWithOTP = async (e) => {
     e.preventDefault()
-
-    if (!formData.otp || !/^[0-9]{6}$/.test(formData.otp)) {
-      setError('Vui lòng nhập mã OTP 6 số hợp lệ')
-      return
-    }
+    if (!validateStep2()) return;
 
     setLoading(true)
     setError('')
@@ -238,6 +240,7 @@ export default function SignUp() {
     setCaptchaChecked(false)
     setCaptchaToken('')
     setStep(1)
+    setErrors({})
   }
 
   const handleBackToStep1 = () => {
@@ -245,6 +248,7 @@ export default function SignUp() {
     setError('')
     setCaptchaChecked(false)
     setCaptchaToken('')
+    setErrors({})
   }
 
   // OAuth functions - giữ nguyên từ code gốc
@@ -254,7 +258,7 @@ export default function SignUp() {
     const state = "google";
 
     if (!googleClientId || googleClientId.includes('placeholder')) {
-      alert("Note: You are using a placeholder Client ID.");
+      ToastNotification('Chú ý: Bạn đang sử dụng Client ID mặc định', 'warning');
     }
 
     const targetUrl = `https://accounts.google.com/o/oauth2/v2/auth?redirect_uri=${encodeURIComponent(
@@ -270,7 +274,7 @@ export default function SignUp() {
     const state = "facebook";
 
     if (!facebookAppId || facebookAppId.includes('placeholder')) {
-      alert("Note: You are using a placeholder Client ID.");
+      ToastNotification('Chú ý: Bạn đang sử dụng Client ID mặc định', 'warning');
     }
 
     const targetUrl = `https://www.facebook.com/v19.0/dialog/oauth?client_id=${facebookAppId}&redirect_uri=${encodeURIComponent(redirectUri)}&state=${state}&scope=email,public_profile`;
@@ -284,7 +288,7 @@ export default function SignUp() {
     const state = "github";
 
     if (!githubClientId || githubClientId.includes('placeholder')) {
-      alert("Note: You are using a placeholder Client ID.");
+      ToastNotification('Chú ý: Bạn đang sử dụng Client ID mặc định', 'warning');
     }
 
     const targetUrl = `https://github.com/login/oauth/authorize?client_id=${githubClientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=user:email&state=${state}`;
@@ -324,11 +328,11 @@ export default function SignUp() {
                   }
                   value={formData[field]}
                   onChange={handleChange}
-                  required
                   disabled={loading}
                   autoComplete={field === 'password' || field === 'confirmPassword' ? 'new-password' : 'off'}
-                  className="w-full px-4 py-3 rounded-lg border border-slate-300 bg-slate-50 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-sm disabled:opacity-70"
+                  className={`w-full px-4 py-3 rounded-lg border border-slate-300 bg-slate-50 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-sm disabled:opacity-70 ${errors[field] ? 'border-red-500 bg-red-50' : ''}`}
                 />
+                {errors[field] && <p className="text-red-600 text-sm mt-1">{errors[field]}</p>}
               </div>
             ))}
 
@@ -347,21 +351,16 @@ export default function SignUp() {
               </div>
             )}
 
-            <button
+            <Button
               type="submit"
+              variant="primary"
+              size="lg"
+              fullWidth
               disabled={loading || !captchaChecked}
-              className="w-full py-3 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 disabled:opacity-70 disabled:cursor-not-allowed transition-all"
+              loading={loading}
             >
-              {loading ? (
-                <span className="flex items-center justify-center gap-2">
-                  <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Đang xử lý...
-                </span>
-              ) : 'Gửi OTP'}
-            </button>
+              Tiếp tục
+            </Button>
           </form>
         ) : (
           <form onSubmit={handleRegisterWithOTP} className="space-y-4">
@@ -381,8 +380,9 @@ export default function SignUp() {
                 onChange={handleChange}
                 maxLength={6}
                 disabled={loading}
-                className="w-full px-4 py-3 rounded-lg border border-slate-300 bg-slate-50 text-center text-lg tracking-widest disabled:opacity-70"
+                className={`w-full px-4 py-3 rounded-lg border border-slate-300 bg-slate-50 text-center text-lg tracking-widest disabled:opacity-70 ${errors.otp ? 'border-red-500 bg-red-50' : ''}`}
               />
+              {errors.otp && <p className="text-red-600 text-sm mt-1">{errors.otp}</p>}
               <div className="flex justify-between items-center mt-2">
                 <button
                   type="button"
@@ -408,21 +408,16 @@ export default function SignUp() {
               </div>
             )}
 
-            <button
+            <Button
               type="submit"
+              variant="success"
+              size="lg"
+              fullWidth
               disabled={loading}
-              className="w-full py-3 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700 disabled:opacity-70 transition-all"
+              loading={loading}
             >
-              {loading ? (
-                <span className="flex items-center justify-center gap-2">
-                  <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Đang xử lý...
-                </span>
-              ) : 'Hoàn tất đăng ký'}
-            </button>
+              Hoàn tất đăng ký
+            </Button>
           </form>
         )}
 

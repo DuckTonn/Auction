@@ -31,6 +31,18 @@ const CreateProduct = () => {
   };
   const [formData, setFormData] = useState(initialFormState);
 
+  const [errors, setErrors] = useState({
+    name: '',
+    category: '',
+    start_price: '',
+    step_price: '',
+    buy_now_price: '',
+    description: '',
+    auction_end: '',
+    thumbnail: '',
+    images: ''
+  });
+
   const [thumbnail, setThumbnail] = useState(null);
   const [thumbnailPreview, setThumbnailPreview] = useState(null);
   
@@ -87,20 +99,73 @@ const CreateProduct = () => {
       ToastNotification(message, type);
     }, 500);
   };
+
+  const validateField = (name, value) => {
+    switch(name) {
+      case 'name':
+        if (!value || !value.trim()) return 'Tên sản phẩm không được để trống';
+        return '';
+      
+      case 'category':
+        if (!value) return 'Vui lòng chọn danh mục';
+        return '';
+      
+      case 'start_price':
+        if (!value) return 'Giá khởi điểm không được để trống';
+        if (Number(value) < 0) return 'Giá khởi điểm phải là số không âm';
+        return '';
+      
+      case 'step_price':
+        if (!value) return 'Bước giá không được để trống';
+        if (Number(value) <= 0) return 'Bước giá phải lớn hơn 0';
+        return '';
+      
+      case 'buy_now_price':
+        if (value && Number(value) > 0 && formData.start_price && Number(value) <= Number(formData.start_price)) {
+          return 'Giá mua ngay phải lớn hơn giá khởi điểm';
+        }
+        return '';
+      
+      case 'description':
+        if (!value || !value.trim()) return 'Mô tả sản phẩm không được để trống';
+        const strippedContent = value.replace(/<[^>]*>/g, '').trim();
+        if (!strippedContent) return 'Mô tả sản phẩm không được để trống';
+        return '';
+      
+      case 'auction_end':
+        if (!value) return 'Vui lòng chọn thời gian kết thúc';
+        const auctionEndTime = new Date(value);
+        const now = new Date();
+        if (auctionEndTime <= now) return 'Thời gian kết thúc phải lớn hơn thời gian hiện tại';
+        return '';
+      
+      default:
+        return '';
+    }
+  };
+
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
+    const newValue = type === 'checkbox' ? checked : value;
+    
     setFormData(prev => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value
+      [name]: newValue
     }));
-    // Compute the new form data as it will be after this change
-    const newFormData = { ...formData, [name]: type === 'checkbox' ? checked : value };
+    
+    const error = validateField(name, newValue);
+    setErrors(prev => ({
+      ...prev,
+      [name]: error
+    }));
+    
+    const newFormData = { ...formData, [name]: newValue };
     if (newFormData.start_price && newFormData.step_price) {
       if (Number(newFormData.step_price) >= Number(newFormData.start_price)) {
-        showToastWithDelay("⚠️ Khuyến nghị: Bước giá nên nhỏ hơn giá khởi điểm!", "warning");
+        showToastWithDelay("Khuyến nghị: Bước giá nên nhỏ hơn giá khởi điểm!", "warning");
       }
       if (Number(newFormData.start_price) <= Number(newFormData.step_price)) {
-        showToastWithDelay("⚠️ Khuyến nghị: Giá khởi điểm nên lớn hơn bước giá!", "warning");
+        showToastWithDelay("Khuyến nghị: Giá khởi điểm nên lớn hơn bước giá!", "warning");
       }
     }
   };
@@ -110,6 +175,16 @@ const CreateProduct = () => {
       ...prev,
       description: content
     }));
+    
+    if (content && content.trim()) {
+      const strippedContent = content.replace(/<[^>]*>/g, '').trim();
+      if (strippedContent) {
+        setErrors(prev => ({
+          ...prev,
+          description: ''
+        }));
+      }
+    }
   };
 
   const handleThumbnailProcess = (file) => {
@@ -117,19 +192,20 @@ const CreateProduct = () => {
 
     const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
     if (!allowedTypes.includes(file.type)) {
-      ToastNotification('Chỉ chấp nhận file ảnh (JPG, JPEG, PNG, WEBP)!', 'error');
+      setErrors(prev => ({ ...prev, thumbnail: 'Chỉ chấp nhận file ảnh (JPG, JPEG, PNG, WEBP)!' }));
       return;
     }
 
     const maxSize = 5 * 1024 * 1024;
     if (file.size > maxSize) {
-      ToastNotification('Ảnh đại diện không được vượt quá 5MB!', 'error');
+      setErrors(prev => ({ ...prev, thumbnail: 'Ảnh đại diện không được vượt quá 5MB!' }));
       return;
     }
 
     setThumbnail(file);
     const preview = URL.createObjectURL(file);
     setThumbnailPreview(preview);
+    setErrors(prev => ({ ...prev, thumbnail: '' }));
   };
 
   const onThumbnailChange = (e) => handleThumbnailProcess(e.target.files[0]);
@@ -149,28 +225,35 @@ const CreateProduct = () => {
     const maxFiles = 10;
 
     if (images.length + fileList.length > maxFiles) {
-      ToastNotification(`Chỉ được upload tối đa ${maxFiles} ảnh chi tiết!`, 'error');
+      setErrors(prev => ({ ...prev, images: `Chỉ được upload tối đa ${maxFiles} ảnh chi tiết!` }));
       return;
     }
 
     const validFiles = [];
     const previews = [];
+    let errorMessage = '';
 
     for (let i = 0; i < fileList.length; i++) {
       const file = fileList[i];
 
       if (!allowedTypes.includes(file.type)) {
-        ToastNotification(`File "${file.name}" không phải là ảnh hợp lệ!`, 'error');
+        errorMessage = `File "${file.name}" không phải là ảnh hợp lệ!`;
         continue;
       }
 
       if (file.size > maxSize) {
-        ToastNotification(`File "${file.name}" vượt quá 5MB!`, 'error');
+        errorMessage = `File "${file.name}" vượt quá 5MB!`;
         continue;
       }
 
       validFiles.push(file);
       previews.push(URL.createObjectURL(file));
+    }
+
+    if (errorMessage) {
+      setErrors(prev => ({ ...prev, images: errorMessage }));
+    } else {
+      setErrors(prev => ({ ...prev, images: '' }));
     }
 
     if (validFiles.length > 0) {
@@ -194,12 +277,14 @@ const CreateProduct = () => {
     if (thumbnailInputRef.current) {
       thumbnailInputRef.current.value = '';
     }
+    setErrors(prev => ({ ...prev, thumbnail: '' }));
   };
 
   const removeImage = (index, e) => {
     e.stopPropagation();
     setImages(prev => prev.filter((_, i) => i !== index));
     setImagesPreview(prev => prev.filter((_, i) => i !== index));
+    setErrors(prev => ({ ...prev, images: '' }));
   };
 
   const handleDragOver = (e, setDragState) => {
@@ -239,27 +324,26 @@ const CreateProduct = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!thumbnail) return ToastNotification("Vui lòng chọn ảnh đại diện!", "error");
-    if (!formData.category) return ToastNotification("Vui lòng chọn danh mục!", "error");
-    if (!formData.step_price || Number(formData.step_price) <= 0) {
-        return ToastNotification("Vui lòng nhập bước giá hợp lệ!", "error");
-    }
+    const newErrors = {
+      name: validateField('name', formData.name),
+      category: validateField('category', formData.category),
+      start_price: validateField('start_price', formData.start_price),
+      step_price: validateField('step_price', formData.step_price),
+      buy_now_price: validateField('buy_now_price', formData.buy_now_price),
+      description: validateField('description', formData.description),
+      auction_end: validateField('auction_end', formData.auction_end),
+      thumbnail: !thumbnail ? 'Vui lòng chọn ảnh đại diện!' : '',
+      images: images.length < 3 ? 'Vui lòng chọn ít nhất 3 ảnh chi tiết!' : ''
+    };
     
-    if (formData.buy_now_price && Number(formData.buy_now_price) > 0 && Number(formData.buy_now_price) <= Number(formData.start_price)) {
-      return ToastNotification("Giá mua ngay phải lớn hơn giá khởi điểm!", "error");
+    setErrors(newErrors);
+    
+    const hasErrors = Object.values(newErrors).some(error => error !== '');
+    
+    if (hasErrors) {
+      return;
     }
 
-    if (images.length < 3) {
-      return ToastNotification("Vui lòng chọn ít nhất 3 ảnh chi tiết!", "error");
-    }
-    const auctionEndTime = new Date(formData.auction_end);
-    const now = new Date();
-    
-    if (auctionEndTime <= now) {
-      return ToastNotification("Thời gian kết thúc phải lớn hơn thời gian hiện tại!", "error");
-    }
-
-    // Hiển thị confirm dialog
     setShowConfirm(true);
   };
 
@@ -308,6 +392,17 @@ const CreateProduct = () => {
       
       ToastNotification("Tạo sản phẩm thành công!", "success");
       setFormData(initialFormState);
+      setErrors({
+        name: '',
+        category: '',
+        start_price: '',
+        step_price: '',
+        buy_now_price: '',
+        description: '',
+        auction_end: '',
+        thumbnail: '',
+        images: ''
+      });
 
       setThumbnail(null);
       setThumbnailPreview(null);
@@ -348,10 +443,14 @@ const CreateProduct = () => {
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
-                required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                  errors.name ? 'border-red-500' : 'border-gray-300'
+                }`}
                 placeholder="Nhập tên sản phẩm"
               />
+              {errors.name && (
+                <p className="mt-1 text-sm text-red-600">{errors.name}</p>
+              )}
             </div>
 
             <div>
@@ -362,9 +461,10 @@ const CreateProduct = () => {
                 name="category"
                 value={formData.category}
                 onChange={handleChange}
-                required
                 disabled={isLoadingCategories}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100"
+                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 ${
+                  errors.category ? 'border-red-500' : 'border-gray-300'
+                }`}
               >
                 <option value="">
                   {isLoadingCategories ? 'Đang tải danh mục...' : 'Chọn danh mục'}
@@ -375,6 +475,9 @@ const CreateProduct = () => {
                   </option>
                 ))}
               </select>
+              {errors.category && (
+                <p className="mt-1 text-sm text-red-600">{errors.category}</p>
+              )}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -387,12 +490,14 @@ const CreateProduct = () => {
                   name="start_price"
                   value={formData.start_price}
                   onChange={handleChange}
-                  required
-                  min="0"
-                  step="1000"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                    errors.start_price ? 'border-red-500' : 'border-gray-300'
+                  }`}
                   placeholder="VNĐ"
                 />
+                {errors.start_price && (
+                  <p className="mt-1 text-sm text-red-600">{errors.start_price}</p>
+                )}
               </div>
 
               <div>
@@ -404,12 +509,14 @@ const CreateProduct = () => {
                   name="step_price"
                   value={formData.step_price}
                   onChange={handleChange}
-                  required
-                  min="1000"
-                  step="1000"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                    errors.step_price ? 'border-red-500' : 'border-gray-300'
+                  }`}
                   placeholder="VNĐ"
                 />
+                {errors.step_price && (
+                  <p className="mt-1 text-sm text-red-600">{errors.step_price}</p>
+                )}
               </div>
 
               <div>
@@ -421,11 +528,14 @@ const CreateProduct = () => {
                   name="buy_now_price"
                   value={formData.buy_now_price}
                   onChange={handleChange}
-                  min="0"
-                  step="1000"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                    errors.buy_now_price ? 'border-red-500' : 'border-gray-300'
+                  }`}
                   placeholder="VNĐ (Không bắt buộc)"
                 />
+                {errors.buy_now_price && (
+                  <p className="mt-1 text-sm text-red-600">{errors.buy_now_price}</p>
+                )}
               </div>
             </div>
 
@@ -438,9 +548,13 @@ const CreateProduct = () => {
                 name="auction_end"
                 value={formData.auction_end}
                 onChange={handleChange}
-                required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                  errors.auction_end ? 'border-red-500' : 'border-gray-300'
+                }`}
               />
+              {errors.auction_end && (
+                <p className="mt-1 text-sm text-red-600">{errors.auction_end}</p>
+              )}
             </div>
 
             <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
@@ -476,11 +590,16 @@ const CreateProduct = () => {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Mô tả sản phẩm <span className="text-red-500">*</span>
               </label>
-              <TextEditor
-                value={formData.description}
-                onChange={handleDescriptionChange}
-                placeholder="Nhập mô tả chi tiết về sản phẩm..."
-              />
+              <div className={errors.description ? 'ring-2 ring-red-500 rounded-lg' : ''}>
+                <TextEditor
+                  value={formData.description}
+                  onChange={handleDescriptionChange}
+                  placeholder="Nhập mô tả chi tiết về sản phẩm..."
+                />
+              </div>
+              {errors.description && (
+                <p className="mt-1 text-sm text-red-600">{errors.description}</p>
+              )}
             </div>
 
             <div>
@@ -497,6 +616,8 @@ const CreateProduct = () => {
                   transition-all duration-200
                   ${isDraggingThumbnail 
                     ? 'border-blue-500 bg-blue-50' 
+                    : errors.thumbnail
+                    ? 'border-red-500'
                     : 'border-gray-300 hover:border-blue-400 hover:bg-gray-50'
                   }
                   ${thumbnailPreview ? 'h-64' : 'h-48'}
@@ -539,6 +660,9 @@ const CreateProduct = () => {
                   </div>
                 )}
               </div>
+              {errors.thumbnail && (
+                <p className="mt-1 text-sm text-red-600">{errors.thumbnail}</p>
+              )}
             </div>
 
             <div>
@@ -556,6 +680,8 @@ const CreateProduct = () => {
                   transition-all duration-200
                   ${isDraggingImages 
                     ? 'border-blue-500 bg-blue-50' 
+                    : errors.images
+                    ? 'border-red-500'
                     : 'border-gray-300 hover:border-blue-400 hover:bg-gray-50'
                   }
                 `}
@@ -601,6 +727,9 @@ const CreateProduct = () => {
                     </div>
                   ))}
                 </div>
+              )}
+              {errors.images && (
+                <p className="mt-1 text-sm text-red-600">{errors.images}</p>
               )}
             </div>
 

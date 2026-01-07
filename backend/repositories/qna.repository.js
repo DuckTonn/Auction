@@ -1,4 +1,4 @@
-import { QnA } from '../schema.js';
+import { QnA } from "../db/schema.js";
 
 class QnARepository {
     async create(qnaData, session = null) {

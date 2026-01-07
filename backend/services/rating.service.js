@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 import { ratingRepository } from '../repositories/rating.repository.js';
 import { userRepository } from '../repositories/user.repository.js';
 import { auctionResultRepository } from '../repositories/auction.result.repository.js';
-import { executeTransaction } from '../db.helper.js';
+import { executeTransaction } from '../db/db.helper.js';
 
 class RatingService {
     async _addRatingLogic(data, session) {

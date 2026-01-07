@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { productService } from '../../services/product.service'
 import ToastNotification from '../common/ToastNotification'
 import TextEditor from '../common/TextEditor'
+import Button from '../common/Button'
 import 'react-quill-new/dist/quill.snow.css'
 
 export default function ProductDescription({ product, isRealSeller, onRefresh }) {
@@ -23,8 +24,8 @@ export default function ProductDescription({ product, isRealSeller, onRefresh })
 
     const handleSubmit = async () => {
         if (!newContent || newContent === '<p><br></p>') {
-        alert('Vui lòng nhập nội dung!');
-        return;
+            ToastNotification('Vui lòng nhập nội dung!', 'error');
+            return;
         }
 
         setIsSaving(true);
@@ -55,15 +56,16 @@ export default function ProductDescription({ product, isRealSeller, onRefresh })
             </h2>
             
             {product.auction_status === 'active' && isRealSeller && !isEditing && (
-            <button
+            <Button
+                variant="primary"
+                size="sm"
                 onClick={() => setIsEditing(true)}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm flex items-center gap-2 cursor-pointer"
             >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                 </svg>
                 Bổ sung thông tin
-            </button>
+            </Button>
             )}
         </div>
 
@@ -80,20 +82,24 @@ export default function ProductDescription({ product, isRealSeller, onRefresh })
                 />
                 </div>
                 <div className="flex justify-end gap-3">
-                <button
+                <Button
+                    variant="outline"
+                    size="sm"
                     onClick={() => { setIsEditing(false); setNewContent(''); }}
-                    className="px-4 py-2 text-gray-600 bg-white border border-gray-300 hover:bg-gray-50 rounded-lg text-sm font-medium cursor-pointer"
                     disabled={isSaving}
                 >
                     Hủy bỏ
-                </button>
-                <button
+                </Button>
+                <Button
+                    variant="primary"
+                    size="sm"
                     onClick={handleSubmit}
                     disabled={isSaving}
-                    className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium shadow-md flex items-center gap-2 cursor-pointer"
+                    loading={isSaving}
+                    className="shadow-md"
                 >
-                    {isSaving ? 'Đang lưu...' : 'Lưu bổ sung'}
-                </button>
+                    Lưu bổ sung
+                </Button>
                 </div>
             </div>
             </div>

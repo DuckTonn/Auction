@@ -8,7 +8,7 @@ import { auctionResultRepository } from '../repositories/auction.result.reposito
 import { userRepository } from '../repositories/user.repository.js';
 import { dispatchEmail } from './email.service.queue.js';
 
-import { executeTransaction } from '../db.helper.js';
+import { executeTransaction } from '../db/db.helper.js';
 
 const PRODUCT_URL_PREFIX = process.env.VITE_URL + 'product/' || 'http://localhost:3000/product/';
 const ORDER_URL_PREFIX = process.env.VITE_URL + 'orders/' || 'http://localhost:3000/orders/';
@@ -49,13 +49,17 @@ class CronService {
                         currentProduct.auction_status = 'sold';
                         await currentProduct.save({ session });
 
-                        await auctionResultRepository.create({
-                            product: currentProduct._id,
-                            winning_bidder: currentProduct.current_highest_bidder._id,
-                            seller: currentProduct.seller._id,
-                            final_price: currentProduct.current_highest_price,
-                            status: 'pending_payment'
-                        }, session);
+                        // Kiểm tra xem auction result đã tồn tại chưa
+                        const existingResult = await auctionResultRepository.findByProduct(currentProduct._id, session);
+                        if (!existingResult) {
+                            await auctionResultRepository.create({
+                                product: currentProduct._id,
+                                winning_bidder: currentProduct.current_highest_bidder._id,
+                                seller: currentProduct.seller._id,
+                                final_price: currentProduct.current_highest_price,
+                                status: 'pending_payment'
+                            }, session);
+                        }
 
                         console.log(`[CRON] [SOLD] ID: ${currentProduct._id} | Price: ${currentProduct.current_highest_price}`);
                         
