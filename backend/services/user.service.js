@@ -13,7 +13,7 @@ import { productService } from './product.service.js';
 import { ratingService } from './rating.service.js';
 
 import { recalculateAuctionState } from '../utils/auction.util.js';
-import { executeTransaction } from '../../db/db.helper.js';
+import { executeTransaction } from '../db.helper.js';
 import { dispatchEmail } from '../services/email.service.queue.js';
 class UserService {
     async updateProfile(userId, profileData) {
