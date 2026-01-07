@@ -1,4 +1,4 @@
-import { WatchList } from '../../db/schema.js';
+import { WatchList } from '../schema.js';
 
 class WatchListRepository {
   async add(userId, productId) {

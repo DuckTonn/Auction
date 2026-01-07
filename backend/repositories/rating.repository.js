@@ -1,4 +1,4 @@
-import mongoose from 'mongoose'
+import mongoose from 'mongoose';
 import { Rating } from "../../db/schema.js";
 
 class RatingRepository {

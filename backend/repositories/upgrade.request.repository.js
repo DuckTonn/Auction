@@ -1,4 +1,4 @@
-import { UpgradeRequest } from '../../db/schema.js';
+import { UpgradeRequest } from '../schema.js';
 
 class UpgradeRequestRepository {
     async create(userId) {

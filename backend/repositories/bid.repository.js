@@ -1,4 +1,4 @@
-import { Bid } from '../../db/schema.js';
+import { Bid } from '../schema.js';
 
 class BidRepository {
     async create(bidData, session) {

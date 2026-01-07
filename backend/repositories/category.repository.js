@@ -1,5 +1,5 @@
-import { Category } from '../../db/schema.js';
-import slugify from 'slugify'
+import slugify from 'slugify';
+import { Category } from '../schema.js';
 
 class CategoryRepository {
     async create(data) {

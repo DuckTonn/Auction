@@ -1,4 +1,4 @@
-import { User } from '../../db/schema.js';
+import { User } from '../schema.js';
 
 class UserRepository {
   async findAll(session = null) {
