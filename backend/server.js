@@ -20,9 +20,32 @@ app.use(cookieParser());
 app.use(passport.initialize());
 app.use(simpleLogger);
 
+// 1. Định nghĩa danh sách các tên miền được phép truy cập
+const allowedOrigins = [
+  'http://localhost:5173',                // Cho phép chạy dưới Local
+  'http://localhost:5174',                // Phòng hờ nếu Local chạy port khác
+  'https://du-an-cua-ban.vercel.app'      // <--- QUAN TRỌNG: Thay dòng này bằng Link Vercel thực tế của bạn
+];
+
+// 2. Cấu hình CORS
 app.use(cors({
-    origin: 'http://localhost:5173',
-    credentials: true,
+  origin: function (origin, callback) {
+    // Cho phép request không có origin (như Postman hoặc Server-to-Server)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) === -1) {
+      // Nếu origin không nằm trong danh sách cho phép -> Chặn
+      var msg = 'Lỗi CORS: Domain ' + origin + ' không được phép truy cập tài nguyên này.';
+      return callback(new Error(msg), false);
+    }
+    
+    // Nếu OK -> Cho qua
+    return callback(null, true);
+  },
+  credentials: true, // Cho phép gửi cookie/session
+  methods: "GET,HEAD,PUT,PATCH,POST,DELETE", // Các method được phép
+  preflightContinue: false,
+  optionsSuccessStatus: 204
 }));
 
 // Import routes
