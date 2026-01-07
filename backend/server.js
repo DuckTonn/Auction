@@ -20,13 +20,6 @@ app.use(cookieParser());
 app.use(passport.initialize());
 app.use(simpleLogger);
 
-// 1. Định nghĩa danh sách các tên miền được phép truy cập
-const allowedOrigins = [
-  'http://localhost:5173',                // Cho phép chạy dưới Local
-  'http://localhost:5174',                // Phòng hờ nếu Local chạy port khác
-  'https://auction-git-main-ducktonns-projects.vercel.app'      // <--- QUAN TRỌNG: Thay dòng này bằng Link Vercel thực tế của bạn
-];
-
 // 2. Cấu hình CORS
 app.use(cors({
     origin: 'https://auction-git-main-ducktonns-projects.vercel.app',
